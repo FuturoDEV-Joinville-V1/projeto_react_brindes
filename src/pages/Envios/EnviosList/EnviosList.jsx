@@ -1,6 +1,9 @@
 import {
+  Button,
   Card,
   CardContent,
+  Input,
+  InputAdornment,
   Table,
   TableBody,
   TableCell,
@@ -11,20 +14,28 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
+
 import DeleteIcon from "@mui/icons-material/Delete";
+import SearchOffOutlined from "@mui/icons-material/SearchOffOutlined";
 
 import EditDocument from "@mui/icons-material/EditDocument";
 import { useNavigate } from "react-router-dom";
 
+import styles from "./EnvioList.module.css";
+
 function EnvioList() {
   const [envios, setEnvios] = useState([]);
-  const navigate = useNavigate()
+  const [enviosFiltrados, setEnviosFiltrados] = useState([]);
+  const navigate = useNavigate();
+
+  const [termo, setTermo] = useState("");
 
   function buscarEnvios() {
     axios
       .get("http://localhost:3001/envios")
       .then((response) => {
         setEnvios(response.data);
+        setEnviosFiltrados(response.data);
       })
       .catch(() => alert("Houve um erro"));
   }
@@ -49,14 +60,47 @@ function EnvioList() {
     }
   }
 
-  function redirecionarParaEdicao(id){
-    navigate(`/envios/editar/${id}`)
+  function redirecionarParaEdicao(id) {
+    navigate(`/envios/editar/${id}`);
+  }
+
+  function pesquisarTermo(event) {
+    event.preventDefault();
+
+    console.log("ENVIOS", envios);
+    console.log("TERMO pesquisado", termo);
+
+    const enviosFiltrados = envios.filter(
+      (envio) =>
+        envio.id.includes(termo) ||
+        envio.cliente_nome.toUpperCase().includes(termo.toUpperCase()) || // pesquisa tanto qualquer palavra quanto qualquer CAIXA ALTA ou baixa
+        envio.produtos_clientes.length.toString() === termo ||
+        envio.valor_total.toFixed(2) === termo
+    );
+
+    setEnviosFiltrados(enviosFiltrados);
   }
 
   return (
     <Card variant="outlined">
       <CardContent>
         <Typography as="h1">Envios feitos</Typography>
+
+        <form className={styles.containerSearch} onSubmit={pesquisarTermo}>
+          <Input
+            id="search"
+            startAdornment={
+              <InputAdornment position="start">
+                <SearchOffOutlined />
+              </InputAdornment>
+            }
+            value={termo}
+            onChange={(event) => setTermo(event.target.value)}
+            fullWidth
+          />
+          <Button type="submit">Buscar</Button>
+        </form>
+
         <TableContainer>
           <Table>
             <TableHead>
@@ -69,7 +113,7 @@ function EnvioList() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {envios.map((envio) => (
+              {enviosFiltrados.map((envio) => (
                 <TableRow key={envio.id}>
                   <TableCell>{envio.id}</TableCell>
                   <TableCell>{envio.cliente_nome}</TableCell>
@@ -87,8 +131,10 @@ function EnvioList() {
                       }
                     />
 
-                    <EditDocument  style={{ color: "blue" }} onClick={() => redirecionarParaEdicao(envio.id)}/>
-
+                    <EditDocument
+                      style={{ color: "blue" }}
+                      onClick={() => redirecionarParaEdicao(envio.id)}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
