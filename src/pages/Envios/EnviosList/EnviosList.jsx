@@ -22,6 +22,7 @@ import EditDocument from "@mui/icons-material/EditDocument";
 import { useNavigate } from "react-router-dom";
 
 import styles from "./EnvioList.module.css";
+import { useRef } from "react";
 
 function EnvioList() {
   const [envios, setEnvios] = useState([]);
@@ -81,6 +82,41 @@ function EnvioList() {
     setEnviosFiltrados(enviosFiltrados);
   }
 
+  function useDebounce(callback, delay) {
+    const timeoutRef = useRef();
+
+    function debounced(...args) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    }
+
+    return debounced;
+  }
+
+  // Debounced filter function
+  const filtrarEnvios = (termo) => {
+    console.log("EXECUTEI")
+    const enviosFiltrados = envios.filter(
+      (envio) =>
+        envio.id.includes(termo) ||
+        envio.cliente_nome.toUpperCase().includes(termo.toUpperCase()) ||
+        envio.produtos_clientes.length.toString() === termo ||
+        envio.valor_total.toFixed(2) === termo
+    );
+    setEnviosFiltrados(enviosFiltrados);
+  };
+
+  const debouncedFiltrarEnvios = useDebounce(filtrarEnvios, 1000);
+
+  function lidarComPesquisaDoTermo(event) {
+    setTermo(event.target.value);
+    debouncedFiltrarEnvios(event.target.value);
+  }
+
+  // Debounce hook
+
   return (
     <Card variant="outlined">
       <CardContent>
@@ -95,7 +131,7 @@ function EnvioList() {
               </InputAdornment>
             }
             value={termo}
-            onChange={(event) => setTermo(event.target.value)}
+            onChange={lidarComPesquisaDoTermo}
             fullWidth
           />
           <Button type="submit">Buscar</Button>
