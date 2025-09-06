@@ -135,6 +135,27 @@ function EnvioForm() {
     }
   }, []);
 
+  function calcularTotal() {
+    let soma = 0
+
+    brindes.forEach(item => {
+      soma = soma + item.preco
+    })
+
+    return soma.toFixed(2)
+  }
+
+  function calcularTotalComReducer(){
+    return brindes.reduce((acumulador, itemAtual) => {
+      return acumulador + itemAtual.preco
+    }, 0)
+  }
+
+  function removerItemBrinde(key) {
+   const novosBrindes = brindes.filter(brinde => brinde.key !== key)
+   setBrindes(novosBrindes)
+  }
+
   return (
     <form onSubmit={salvarEnvio}>
       <Card variant="outlined">
@@ -198,8 +219,8 @@ function EnvioForm() {
                     <TableCell>{brinde.nome}</TableCell>
                     <TableCell>{brinde.preco}</TableCell>
                     <TableCell>
-                      {/* Ícone de lixeira vermelho */}
-                      {/* <DeleteIcon style={{ color: "red" }} /> */}
+                      
+                      <DeleteIcon  onClick={() => removerItemBrinde(brinde.key)} style={{ color: "red" }} /> 
                     </TableCell>
                   </TableRow>
                 ))}
@@ -212,7 +233,7 @@ function EnvioForm() {
             justifyContent="flex-end"
             style={{ marginTop: "20px" }}
           >
-            <Typography>Valor total dos mimos: R$ 12,00</Typography>
+            <Typography>Valor total dos mimos: {calcularTotalComReducer()}</Typography>
           </Box>
           <Box display="flex" justifyContent="flex-end">
             <Button type="submit" variant="outlined">
